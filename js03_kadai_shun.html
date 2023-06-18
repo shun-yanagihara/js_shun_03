@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>Chatアプリ</title>
+</head>
+<body bgcolor="#808080">
+
+<!-- コンテンツ表示画面 -->
+
+<div>
+    <div>
+        名前: <input type="text" id="uname">
+    </div>
+    <div>
+        <textarea name="" id="text" cols="30" rows="10"></textarea>
+        <button id="send">送信</button>
+    </div>
+    <div id="output"></div>
+</div>
+
+<style>
+    #output{
+        width: 230px;
+        height: 200px;
+        overflow: scroll;
+        background: #C0C0C0;
+    }
+</style>
+<!--/ コンテンツ表示画面 -->
+
+
+
+<!-- JQuery -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<!-- JQuery -->
+
+
+<!--** 以下Firebase **-->
+<script type="module">
+    // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+  import { getDatabase, ref, push, set, onChildAdded, remove, onChildRemoved }
+        from "https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.2/firebase-database.js";
+  // Your web app's Firebase configuration
+  const firebaseConfig = {
+    apiKey: "xxx",
+    authDomain: "fir-shun.firebaseapp.com",
+    databaseURL: "https://fir-shun-default-rtdb.firebaseio.com",
+    projectId: "fir-shun",
+    storageBucket: "fir-shun.appspot.com",
+    messagingSenderId: "574750016572",
+    appId: "1:574750016572:web:bab8e383e713859504af39"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+
+    const db = getDatabase(app); // RealtimeDBに接続
+    const dbRef = ref(db, "chat"); // RealtimeDB内の"chat"を使う
+
+    $("#send").on("click", function () {
+        const msg = {
+            uname: $("#uname").val(),
+            text: $("#text").val()
+        }
+        const newPostRef = push(dbRef); // pushできる状態にする
+        set(newPostRef, msg); // DBに値を送信
+    });
+
+    onChildAdded(dbRef, function (data) {
+        const msg = data.val();
+        const key = data.key;
+        console.log(key)
+        const h = `<p id="${key}" class="message">${msg.uname}: ${msg.text}</p>`; 
+        $('#output').append(h); // #output の最後に追加
+    });
+
+    $('#output').on('click','.message', function(){
+        // 1. pタグのid (=firebaseのキー情報)を取得
+        //   →ヒント: クリックされた要素自体を取得するのは $(this) と書く
+        var key = $(this).attr('id');
+        // console.log(key);
+        // 2. どのチャットに対して操作したいのかを指定する（ref）
+        //   →ヒント: const dbRef = ref(db, "chat"); と書くと、 chatという場所に対して指示が出せました
+        //           今回は chatの中のkeyに指示を出したい
+        //           例えば、 -N2GlZ-7UDtuYDrvtSOk に指示を出したいとすると以下のように書く
+        //           const chatRef = ref(db, "chat/-N2GlZ-7UDtuYDrvtSOk");
+        const chatRef = ref(db, `chat/${key}`);
+        // console.log(chatRef);
+        // 3. firebaseの中身を削除する
+        //   →ヒント: remove(chatRef); でいける
+        remove(chatRef);
+    });
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
